@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Integrity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+<header class="nav">
+  <div class="brand"><div class="brand-mark">N</div><strong></strong></div>
+  <nav>
+    <button class="nav-item active" data-page="overview" data-roles="admin publisher verifier">Overview</button>
+    <button class="nav-item" data-page="auto" data-roles="admin publisher verifier">Auto demo <i class="live-dot"></i></button>
+    <button class="nav-item" data-page="publisher" data-roles="admin publisher">Publisher</button>
+    <button class="nav-item" data-page="verify" data-roles="admin verifier">Verify an update</button>
+    <button class="nav-item" data-page="lab" data-roles="admin verifier">Attack lab</button>
+    <button class="nav-item" data-page="tools" data-roles="admin publisher">Keys &amp; tools</button>
+    <button class="nav-item" data-page="audit" data-roles="admin publisher verifier">Audit trail</button>
+    <button class="nav-item" data-page="users" data-roles="admin">Users</button>
+  </nav>
+  <div class="top-actions"><span class="keychip" id="active-key">key: …</span><div class="usermenu"><div class="avatar" id="avatar">?</div><div class="who"><b id="who-name">—</b><small id="who-role"></small></div><button class="small-action" id="pw-btn">Password</button><button class="small-action" id="logout-btn">Sign out</button></div></div>
+  <span id="crumb-current" class="hidden">Overview</span>
+</header>
+<main class="main">
+<!-- OVERVIEW -->
+  <section class="page active" id="page-overview">
+    <div class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow" id="today-label">SIGN / VERIFY / PROTECT</div>
+        <h1>Updates you can<br><em>truly trust</em></h1>
+        <p class="hero-sub"><span id="greeting">Welcome back.</span> Every release is signed, checked and recorded, so tampering never slips through.</p>
+        <div class="hero-btns"><button class="button button-dark" data-go="auto">Watch auto demo</button><button class="button button-outline" id="quick-publish" data-roles="admin publisher">Create sample update</button></div>
+        <div class="trusted"><span>Checks</span><b>HMAC</b><b>SHA256</b><b>EXPIRY</b><b>REPLAY</b><b>VERSION</b></div>
+      </div>
+      <div class="blob-wrap"><div class="blob"><svg viewBox="0 0 400 400" class="blob-art"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3c3a3"/><stop offset="1" stop-color="#b98a66"/></linearGradient></defs>
+        <circle cx="200" cy="200" r="150" class="ring r1"/><circle cx="200" cy="200" r="110" class="ring r2"/>
+        <path d="M200 90l82 30v70c0 55-36 90-82 102-46-12-82-47-82-102v-70z" fill="url(#g1)"/><path d="M160 200l30 30 55-62" class="tick"/>
+        <g class="orb o1"><rect x="180" y="36" width="64" height="26" rx="13"/><text x="212" y="54">SHA256</text></g><g class="orb o2"><rect x="60" y="250" width="64" height="26" rx="13"/><text x="92" y="268">HMAC</text></g><g class="orb o3"><rect x="280" y="300" width="64" height="26" rx="13"/><text x="312" y="318">KEY</text></g></svg></div></div>
+    </div>
+    <div class="stats-bar">
+      <div><strong id="stat-total">0</strong><small>Verification runs</small></div>
+      <div><strong id="stat-passed">0</strong><small>Accepted</small></div>
+      <div><strong id="stat-blocked">0</strong><small>Blocked or rejected</small></div>
+      <div><strong id="stat-replay">0</strong><small>Replay or rollback stopped</small></div>
+    </div>
+    <div class="content-grid">
+      <article class="panel">
+        <div class="panel-head"><div><h2>Verification pipeline</h2><p>Seven independent checks before an update is trusted.</p></div><span class="tiny-label">Policy view</span></div>
+        <div class="pipeline">
+          <div class="pipeline-step"><div class="step-icon">01</div><div><b>HMAC authentication</b><small>Constant-time check of the signed envelope</small></div><span class="step-state">READY</span></div>
+          <div class="pipeline-step"><div class="step-icon">02</div><div><b>Key trust</b><small>Signing key must exist in the keyring</small></div><span class="step-state">READY</span></div>
+          <div class="pipeline-step"><div class="step-icon">03</div><div><b>Package fingerprint</b><small>Full-package SHA-256 digest</small></div><span class="step-state">READY</span></div>
+          <div class="pipeline-step"><div class="step-icon">04</div><div><b>File manifest</b><small>Changed, missing and extra files</small></div><span class="step-state">READY</span></div>
+          <div class="pipeline-step"><div class="step-icon">05</div><div><b>Freshness</b><small>Enforces the signed expiry time</small></div><span class="step-state">READY</span></div>
+          <div class="pipeline-step"><div class="step-icon">06</div><div><b>Replay protection</b><small>Update IDs are single-use</small></div><span class="step-state">READY</span></div>
+          <div class="pipeline-step"><div class="step-icon">07</div><div><b>Version policy</b><small>Rejects downgrade attempts</small></div><span class="step-state">READY</span></div>
+        </div>
+        <div class="pipeline-note"><span>i</span> Packages are never installed or executed. Verification is inspection-only.</div>
+      </article>
+      <div class="stack">
+        <article class="panel"><div class="panel-head"><div><h2>Outcome split</h2><p>Accepted vs. blocked verifications.</p></div></div>
+          <div class="donut-wrap"><div class="donut empty" id="donut"><div><span id="donut-pct">–</span><small>PASS RATE</small></div></div>
+            <div class="legend"><span><i style="background:var(--green)"></i><b id="lg-pass">0</b> accepted</span><span><i style="background:var(--red)"></i><b id="lg-block">0</b> blocked</span><span><i style="background:var(--cyan)"></i><b id="lg-pub">0</b> releases published</span></div></div></article>
+        
+      </div>
+    </div>
+    <div class="bottom-banner"><div class="banner-mark">✳</div><div><b>Integrity is a process, not a single checksum.</b><p>Northstar pairs cryptographic authentication with freshness and version-policy checks.</p></div><button class="text-button" data-go="lab">Explore attack lab →</button></div>
+  </section>
+
+  <!-- AUTO DEMO -->
+  <section class="page" id="page-auto">
+    <div class="page-heading"><div><div class="eyebrow">HANDS-FREE WALKTHROUGH</div><h1>Automated demo</h1><p>Sign, verify, attack, audit. Watch it play out live.</p></div>
+      <div class="demo-controls"><select id="demo-speed" title="Playback speed"><option value="1.8">Slow</option><option value="1" selected>Normal</option><option value="0.4">Fast</option><option value="0">Instant</option></select>
+        <button class="button button-outline hidden" id="demo-pause">❚❚ Pause</button><button class="button button-dark" id="demo-start">▶ Start automated demo</button></div></div>
+    <div class="panel demo-head"><div class="phase-pills" id="phase-pills"></div><div class="progress"><div class="progress-bar" id="demo-bar"></div></div><div class="progress-meta"><span id="demo-count">Ready</span><span id="demo-note">Computed live by the real engine</span></div></div>
+    <div class="stage" id="stage"><div class="stage-top"><div class="actor" id="actor"></div><div class="dots" id="dots"></div></div>
+      <div class="canvas" id="canvas"><div class="idle"><div class="idle-shield"></div><b>Press start to play the walkthrough</b></div></div>
+      <div class="caption"><span class="cap-num" id="cap-num">00</span><div><b id="cap-title">Ready</b><small id="cap-phase"></small></div></div></div>
+  </section>
+
+  <!-- PUBLISHER -->
+  <section class="page" id="page-publisher">
+    <div class="page-heading"><div><div class="eyebrow">RELEASE WORKFLOW</div><h1>Publish an update</h1><p>Sign a sample bundle or your own ZIP with the active key.</p></div></div>
+    <div class="two-col">
+      <article class="panel"><div class="panel-head"><div><h2>Release package</h2><p>Generates a file manifest and HMAC envelope.</p></div><span class="tiny-label">Publisher</span></div>
+        <div class="segmented"><button class="on" id="mode-sample">Sample bundle</button><button id="mode-upload">Upload my ZIP</button></div>
+        <div class="field"><label>Application</label><input value="Northstar Notes" id="app-name" maxlength="80"></div>
+        <div class="row2">
+          <div class="field"><label>Version</label><input value="1.0.0" id="app-version" maxlength="40"></div>
+          <div class="field"><label>Expires</label><select id="app-expiry"><option value="0">Never</option><option value="1">In 1 hour</option><option value="24">In 24 hours</option><option value="168">In 7 days</option></select></div>
+        </div>
+        <div class="field" id="sample-box"><label>Package content</label><div class="package-preview"><div class="file-glyph">ZIP</div><div><b>Sample application bundle</b><small>3 example files · generated locally</small></div><span class="file-check">✓</span></div></div>
+        <div class="field hidden" id="upload-box"><label>Your package (.zip)</label><label class="dropzone compact" data-drop><span class="upload-icon">↑</span><b>Choose or drop a ZIP</b><small>Max 30 MB · never executed</small><input type="file" id="publish-file" accept=".zip"></label></div>
+        <button class="button button-dark full" id="publish-button">Generate signed update <span>→</span></button>
+        <p class="form-footnote">The demo key lives in <code>data/keys.json</code>. Not suitable for production.</p>
+      </article>
+      <article class="panel"><div class="panel-head"><div><h2>Release receipt</h2><p>Your generated release details appear here.</p></div></div>
+        <div id="publish-result" class="empty-large"><div class="empty-icon">↗</div><b>Nothing published yet</b><p>Create an update to generate its authentication envelope.</p></div></article>
+    </div>
+    <article class="panel" style="margin-top:18px"><div class="panel-head"><div><h2>Release history</h2><p>Previously signed packages. Verify any of them in one click.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>APPLICATION</th><th>VERSION</th><th>KEY</th><th>EXPIRES</th><th>CREATED</th><th></th></tr></thead><tbody id="release-body"><tr><td colspan="6" class="empty-cell">No releases yet.</td></tr></tbody></table></div></article>
+  </section>
+
+  <!-- VERIFY -->
+  <section class="page" id="page-verify">
+    <div class="page-heading"><div><div class="eyebrow">TRUST DECISION</div><h1>Verify an update</h1><p>Inspect a package against its signed envelope before accepting it.</p></div>
+      <button class="button button-outline" id="use-latest">⚡ Load latest release</button></div>
+    <div class="two-col">
+      <article class="panel"><div class="panel-head"><div><h2>Verification input</h2><p>Choose the ZIP and its matching JSON envelope.</p></div><span class="tiny-label">Verifier</span></div>
+        <form id="verify-form">
+          <div class="field"><label>Update package (.zip)</label><label class="dropzone" data-drop><span class="upload-icon">↑</span><b id="package-label">Choose or drop a ZIP package</b><small>Contents are inspected, never executed.</small><input type="file" id="package-file" accept=".zip" required></label></div>
+          <div class="field"><label>Signed envelope (.json)</label><label class="dropzone compact" data-drop><span class="upload-icon">⌑</span><b id="envelope-label">Choose the matching envelope</b><small>Metadata, manifest and HMAC.</small><input type="file" id="envelope-file" accept=".json" required></label></div>
+          <label class="accept-row"><input type="checkbox" id="accept-update"> <span><b>Accept update if all checks pass</b><small>Records this version and update ID as installed.</small></span></label>
+          <button class="button button-dark full" type="submit">Run integrity verification <span>→</span></button>
+        </form>
+      </article>
+      <article class="panel"><div class="panel-head"><div><h2>Verification report</h2><p>Decision and evidence from the security engine.</p></div></div>
+        <div id="verify-result" class="empty-large"><div class="empty-icon">⌁</div><b>Awaiting package</b><p>Run a verification to see the trust decision and individual checks.</p></div></article>
+    </div>
+  </section>
+
+  <!-- LAB -->
+  <section class="page" id="page-lab">
+    <div class="page-heading"><div><div class="eyebrow">CONTROLLED DEMONSTRATION</div><h1>Attack simulation lab</h1><p>Choose a target, pick an attack, and watch it play out in its own window.</p></div><span class="lab-chip">SANDBOXED SCENARIOS</span></div>
+    <article class="panel target-panel"><div class="panel-head"><div><h2>Target package</h2><p>Attacks run on a sandboxed copy. Your real releases are never touched.</p></div></div>
+      <div class="segmented" style="max-width:380px"><button class="on" id="lab-sample">Sample bundle</button><button id="lab-upload">My own ZIP</button></div>
+      <div class="hidden" id="lab-drop" style="margin-top:14px"><label class="dropzone compact" data-drop><span class="upload-icon">↑</span><b>Choose or drop your ZIP</b><small>Re-signed in the sandbox, never executed.</small><input type="file" id="lab-file" accept=".zip"></label></div></article>
+    <div class="lab-grid" id="lab-grid" style="margin-top:18px"></div>
+    <article class="panel" style="margin-top:18px"><div class="panel-head"><div><h2>Tamper your own package</h2><p>Create a modified copy of any ZIP, then verify it with the original envelope.</p></div></div>
+      <label class="dropzone compact" data-drop><span class="upload-icon">⚒</span><b id="tamper-label">Choose a ZIP to tamper with</b><small>A tampered copy downloads automatically.</small><input type="file" id="tamper-file" accept=".zip"></label></article>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="page" id="page-tools">
+    <div class="page-heading"><div><div class="eyebrow">CRYPTOGRAPHY</div><h1>Keys &amp; tools</h1><p>Manage the signing keyring and experiment with SHA-256 and HMAC.</p></div></div>
+    <div class="two-col">
+      <article class="panel"><div class="panel-head"><div><h2>Keyring</h2><p>Old keys stay trusted so earlier releases still verify. New releases use the active key.</p></div><button class="button button-outline" id="rotate-btn">↻ Rotate key</button></div>
+        <div id="key-list"></div><p class="form-footnote">Only a short fingerprint of each secret is shown, never the secret itself.</p></article>
+      <article class="panel"><div class="panel-head"><div><h2>Hash &amp; HMAC playground</h2><p>Compute digests with the active key. Paste a tag to test it.</p></div></div>
+        <div class="field"><label>Text input</label><textarea id="hash-text" placeholder="Type something, or choose a file below…"></textarea></div>
+        <div class="field"><label>Or a file</label><input type="file" id="hash-file"></div>
+        <div class="field"><label>HMAC tag to compare (optional)</label><input id="hash-compare" placeholder="paste a hex tag"></div>
+        <button class="button button-dark full" id="hash-btn">Compute →</button>
+        <div id="hash-out"></div></article>
+    </div>
+  </section>
+
+  <!-- USERS -->
+  <section class="page" id="page-users">
+    <div class="page-heading"><div><div class="eyebrow">ACCESS CONTROL</div><h1>Users &amp; roles</h1><p>Separate who can publish from who can verify.</p></div></div>
+    <div class="two-col">
+      <article class="panel"><div class="panel-head"><div><h2>Create user</h2><p>Passwords are stored as salted PBKDF2-SHA256 hashes.</p></div></div>
+        <div class="field"><label>Username</label><input id="nu-name" maxlength="32" autocomplete="off"></div>
+        <div class="field"><label>Temporary password (min 8)</label><input id="nu-pass" type="password" autocomplete="new-password"></div>
+        <div class="field"><label>Role</label><select id="nu-role"><option value="publisher">Publisher: signs and releases updates</option><option value="verifier">Verifier: inspects and accepts updates</option><option value="admin">Admin: full access, users, key rotation</option></select></div>
+        <button class="button button-dark full" id="nu-btn">Create user →</button></article>
+      <article class="panel"><div class="panel-head"><div><h2>Role permissions</h2><p>Enforced by the API, not just the interface.</p></div></div>
+        <div class="check-list">
+          <div class="check-row"><span><b>Admin</b></span><span class="pass">everything</span></div>
+          <div class="check-row"><span><b>Publisher</b></span><span class="pass">publish · keys view · hash tool</span></div>
+          <div class="check-row"><span><b>Verifier</b></span><span class="pass">verify · attack lab</span></div>
+          <div class="check-row"><span>All roles</span><span class="pass">overview · audit trail</span></div></div></article>
+    </div>
+    <article class="panel" style="margin-top:18px"><div class="panel-head"><div><h2>Accounts</h2><p>Accounts lock for 5 minutes after 5 failed sign-ins.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>USER</th><th>ROLE</th><th>STATUS</th><th>LAST LOGIN</th><th></th></tr></thead><tbody id="user-body"></tbody></table></div></article>
+  </section>
+
+  <!-- AUDIT -->
+  <section class="page" id="page-audit">
+    <div class="page-heading"><div><div class="eyebrow">ACCOUNTABILITY</div><h1>Audit trail</h1><p>A hash-chained record of publishing, verification and key events.</p></div>
+      <div class="audit-toolbar" style="margin:0"><a class="button button-outline" href="/api/audit.csv">CSV ↓</a><a class="button button-dark" href="/api/report">JSON report ↓</a></div></div>
+    <article class="panel"><div class="audit-toolbar"><div><h2>Event history</h2><p style="color:var(--muted);font-size:12.5px">Click a row for details · newest first</p></div>
+      <span class="chain" id="chain-state">chain: not checked</span><button class="button button-outline" id="chain-btn">Verify chain</button>
+      <select id="audit-status"><option value="">All statuses</option></select><input id="audit-search" class="search-input" placeholder="Filter events…"></div>
+      <div class="table-wrap"><table><thead><tr><th>EVENT</th><th>APPLICATION</th><th>VERSION</th><th>STATUS</th><th>TIME</th></tr></thead><tbody id="audit-body"><tr><td colspan="5" class="empty-cell">No events recorded yet.</td></tr></tbody></table></div></article>
+  </section>
+
+  <footer class="footer"><span>Northstar Update Assurance</span><span>HMAC-SHA256 · Local research prototype</span></footer>
+</main>
+<div class="login-screen hidden" id="login-screen">
+  <form class="login-card" id="login-form">
+    <div class="brand-mark big">N</div><h1>Sign in</h1><p>Northstar Update Assurance</p>
+    <div class="field"><label>Username</label><input id="login-user" autocomplete="username" required autofocus></div>
+    <div class="field"><label>Password</label><input id="login-pass" type="password" autocomplete="current-password" required></div>
+    <div class="login-error" id="login-error"></div>
+    <button class="button button-dark full" type="submit" id="login-btn">Sign in →</button>
+    <small class="login-hint">First run? The admin password is printed in the terminal.</small>
+  </form>
+</div>
+<dialog id="pw-dialog"><form method="dialog" id="pw-form"><h2>Change password</h2>
+  <div class="field"><label>Current password</label><input type="password" id="pw-current" autocomplete="current-password"></div>
+  <div class="field"><label>New password (min 8)</label><input type="password" id="pw-new" autocomplete="new-password"></div>
+  <div class="row2"><button class="button button-outline" value="cancel">Cancel</button><button class="button button-dark" id="pw-save" value="default">Save</button></div></form></dialog>
+<dialog id="sim-dialog" class="sim"><div class="sim-head"><div><div class="eyebrow" id="sim-eyebrow">SIMULATION</div><h2 id="sim-title">Attack</h2></div><div class="sim-btns"><button class="button button-outline" id="sim-replay">↻ Replay</button><button class="button button-dark" id="sim-close">Close</button></div></div>
+  <div class="stage" id="sim-stage"><div class="stage-top"><div class="actor" id="sim-actor"></div><div class="dots" id="sim-dots"></div></div><div class="canvas" id="sim-canvas"></div>
+    <div class="caption"><span class="cap-num" id="sim-num">00</span><div><b id="sim-cap">Preparing</b><small id="sim-phase"></small></div></div></div>
+  <div class="sim-foot" id="sim-foot"></div></dialog>
+<div id="toast" class="toast"></div>
+<script src="/static/app.js"></script>
+<script src="/static/demo-stage.js"></script>
+</body>
+</html>
