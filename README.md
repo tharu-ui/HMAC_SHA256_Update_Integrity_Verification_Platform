@@ -119,4 +119,4 @@ requirements.txt
 
 ## Author
 
-Built by T as a Computer Science and Engineering project at Saveetha University (SIMATS).
+Built by Tharuniya as a Computer Science and Engineering project for Cryptography and Network Security Course at University .
