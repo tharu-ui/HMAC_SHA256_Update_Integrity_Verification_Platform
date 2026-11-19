@@ -1,109 +1,122 @@
-# HMAC Update Integrity Platform (v2.0)
+# HMAC SHA256 Update Integrity Verification Platform
 
-A runnable educational capstone prototype for software-update authenticity and integrity verification.
+A web based platform that signs and verifies software update packages using HMAC SHA256 authentication and SHA256 file fingerprints. It protects against tampering, forged metadata, replay, rollback and expired releases, and includes an attack simulation lab, an animated walkthrough and a hash chained audit trail.
 
-## What it demonstrates
-- HMAC-SHA256 signing and constant-time verification (`hmac.compare_digest`)
-- Per-file SHA-256 manifest for ZIP update packages
-- Package tampering, missing-file and unexpected-file detection
-- Update version / rollback checks
-- Replay detection using unique update IDs
-- Key rotation (demo keyring)
-- Attack simulation controls
-- SQLite audit history and downloadable JSON report
+This is an educational prototype built to demonstrate how layered integrity checks work together. It is not a production update system.
 
-> **Important:** This is a local academic prototype, not a production updater. It does not install or execute uploaded software. The demo key is stored in a local `.env` file for convenience. Production systems need protected key storage, authenticated publisher workflows, TLS, access control, key separation, secure boot/update-agent design and operational controls. HMAC uses a shared secret; it is not a public-verification signature scheme.
+![Overview](docs/screenshots/01-overview.png)
 
-## What's new in v2.0
-- Dark redesigned UI: drag-and-drop uploads, pass-rate chart, release history
-- Working key rotation (keyring in `data/keys.json`; old keys stay valid for verification)
-- Expiry enforcement and unknown-key detection
-- Publish your own ZIP, not just the sample bundle
-- One-click Attack Lab: tamper, forged metadata, replay, rollback, expired, unknown key
-- Hash & HMAC playground with constant-time tag comparison
-- Hash-chained audit log with chain verification, filters, row details and CSV export
+## Features
 
-## Automated demo (new)
-Open **Auto demo** and press start. The server runs the real engine in a sandbox app and the page
-plays a 21-step walkthrough on its own: package, fingerprint, envelope, canonicalisation, HMAC signing,
-safe ZIP inspection, constant-time tag comparison, manifest check, freshness/replay/version checks,
-then six attacks (tamper, forged metadata, replay, rollback, expired, unknown key) and the audit-chain check.
-It has pause/resume and Slow / Normal / Fast / Instant speeds. Code: `app/demo.py`.
+* **Signed releases:** every ZIP update is described by a canonical JSON envelope that is signed with HMAC SHA256 using a keyring with an active key.
+* **Seven independent checks:** HMAC authentication, key trust, package fingerprint, file manifest, freshness and expiry, replay protection and version policy.
+* **Attack simulation lab:** run tampering, forged metadata, replay, rollback, expired release and unknown key attacks on the sample bundle or on your own ZIP. Each attack plays in its own window with the real result from the engine.
+* **Animated auto demo:** a 21 step visual walkthrough of the whole lifecycle, from building a package to blocking six attacks, with pause and speed controls.
+* **Key rotation:** create a new active key while older keys stay trusted for verifying earlier releases.
+* **Hash chained audit log:** every event is linked to the previous one, with chain verification, filters and CSV export.
+* **Role based access:** admin, publisher and verifier roles with PBKDF2 password hashing, server side sessions and account lockout.
+* **Hash and HMAC playground:** compute and compare tags with a constant time check.
 
-## Login & roles (new)
-On first run an `admin` account is created and its password is **printed once in the terminal**
-(or set `ADMIN_PASSWORD` in `.env` beforehand). Forgot it? Run `python reset_admin.py`.
+## Screenshots
 
-| Role | Can do |
-|---|---|
-| admin | everything, plus user management and key rotation |
-| publisher | publish updates, view keys, hash/HMAC tool |
-| verifier | verify updates, attack lab |
-| all roles | overview and audit trail |
+![Auto demo](docs/screenshots/02-auto-demo.png)
+![Verify an update](docs/screenshots/03-verify.png)
+![Attack lab](docs/screenshots/04-attack-lab.png)
+![Simulation window](docs/screenshots/05-simulation-window.png)
 
-Security details: PBKDF2-HMAC-SHA256 (600k iterations, per-user salt), server-side sessions
-(only a SHA-256 of the token is stored), HttpOnly + SameSite=Strict cookie, 8-hour expiry,
-account lockout after 5 failed attempts for 5 minutes, and all sign-ins/user changes appear in the audit trail.
+## How it works
 
-## Requirements
-- Python 3.10+
-- VS Code
-- Internet only for the first installation of Python packages
+1. **Publish:** the publisher uploads or generates a ZIP. The platform records a SHA256 hash of every file and of the whole package, adds metadata (application, version, update ID, key ID, expiry) and signs the canonical JSON with HMAC SHA256.
+2. **Verify:** the verifier receives the package and the signed envelope. The package is inspected safely without extracting or running it, then seven checks run in order.
+3. **Decide:** the update is accepted only if every check passes. Accepted versions and update IDs are recorded, so a replayed or older update is refused later.
+4. **Record:** every action is written to the hash chained audit log.
 
-## Run on Windows (VS Code terminal)
-1. Extract the ZIP.
-2. Open the extracted `HMAC_Update_Integrity_Platform` folder in VS Code.
-3. Open **Terminal → New Terminal**.
-4. Create a virtual environment:
+## Tech stack
 
-   ```powershell
+* Python 3.10 or newer and FastAPI
+* SQLite for audit history, sessions and accepted updates
+* HTML, CSS and plain JavaScript for the interface, with no build step
+
+## Getting started
+
+1. Clone the repository and open the folder in a terminal.
+2. Create and activate a virtual environment:
+
+   ```
    py -m venv .venv
    .\.venv\Scripts\Activate.ps1
    ```
 
-   If PowerShell blocks activation, run:
-   ```powershell
-   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-   .\.venv\Scripts\Activate.ps1
-   ```
+   On macOS or Linux use `python3 -m venv .venv` and `source .venv/bin/activate`.
 
-5. Install dependencies:
-   ```powershell
+3. Install the dependencies:
+
+   ```
    python -m pip install -r requirements.txt
    ```
-6. Start the application:
-   ```powershell
+
+4. Copy `.env.example` to `.env` and set `APP_SECRET` to a long random value.
+5. Start the application:
+
+   ```
    python run.py
    ```
-7. Open the address printed in the terminal (normally `http://127.0.0.1:8000`).
 
-## First demo
-1. Go to **Publisher** and create a sample update.
-2. Open **Verify** and select the generated ZIP.
-3. Verify it. It should pass.
-4. In **Attack Lab**, create a tampered copy, then verify that copy.
-5. Try replaying the same valid update twice, or test an older version after accepting a newer one.
-6. Open **Audit Trail** to review events.
+6. Open `http://127.0.0.1:8000`. On first run an `admin` account is created and its password is printed once in the terminal. If you forget it, run `python reset_admin.py`.
+
+## Suggested first tour
+
+1. Open **Auto demo** and press start to watch the full lifecycle.
+2. Go to **Publisher** and create a sample update.
+3. Open **Verify an update**, load the latest release and run the verification. It should pass.
+4. Open **Attack lab**, choose the sample bundle or upload your own ZIP, and run each attack.
+5. Open **Keys and tools**, rotate the key, then verify the earlier release again.
+6. Open **Audit trail** and run the chain verification.
+
+## Roles
+
+* **admin:** everything, including user management and key rotation
+* **publisher:** publish updates, view keys, use the hash and HMAC tool
+* **verifier:** verify updates and use the attack lab
+* **all roles:** overview and audit trail
 
 ## Project structure
+
 ```text
 app/
-  main.py              FastAPI routes and verification workflow
-  security.py          HMAC, manifest, ZIP safety and attack checks
-  database.py          SQLite audit and accepted-update records
+  main.py          FastAPI routes and the verification workflow
+  security.py      HMAC, manifest, ZIP safety and attack checks
+  auth.py          Password hashing, sessions and lockout
+  database.py      SQLite audit log and accepted update records
+  demo.py          Engine trace used by the auto demo
   static/
-    index.html
-    styles.css
-    app.js
-data/                  Generated packages, database and reports
-.env                   Local demo secret (created automatically)
+    index.html     Interface
+    styles.css     Base styles
+    theme.css      Theme, layout and animation styles
+    app.js         Pages, forms and the attack lab
+    demo-stage.js  Animated demo and simulation window
+data/              Generated at run time (keys, database, packages), not committed
 run.py
+reset_admin.py
 requirements.txt
 ```
 
 ## Security notes
-- The ZIP is inspected but never extracted to disk or executed.
-- ZIP entries with absolute paths, `..` traversal, encrypted entries or symlinks are rejected.
-- The manifest is authenticated together with update metadata.
-- A valid HMAC alone does not establish freshness; the platform separately checks version, expiry and replay state.
-- The demo uses one local application key. For real deployment, isolate publisher and verifier roles and use a proper secret manager or hardware-backed key storage.
+
+* Uploaded ZIP files are inspected but never extracted to disk or executed.
+* Entries with absolute paths, `..` traversal, encryption or symbolic links are rejected, and size and file count limits apply.
+* The manifest is authenticated together with the update metadata.
+* A valid HMAC alone does not prove freshness, so version, expiry and replay state are checked separately.
+* Passwords use PBKDF2 HMAC SHA256 with 600,000 iterations and a per user salt. Sessions are stored server side as hashes, use an HttpOnly and SameSite Strict cookie, and expire after 8 hours. Five failed sign ins lock an account for 5 minutes.
+* Attack simulations on uploaded files always run in a sandboxed application, so real release state is never changed.
+
+## Limitations and future work
+
+* **Shared secret:** HMAC uses one secret key that both the signer and the verifier must hold. Real public software updates use asymmetric signatures such as Ed25519 so that verifiers cannot create signatures. A future version could add this.
+* **Key storage:** keys are kept in a local file for convenience. A production system needs a secret manager or hardware backed storage.
+* **Prototype scope:** there is no real update agent, transport security or hardware root of trust, and the platform never installs the software it verifies.
+* **Possible extensions:** signature scheme comparison, threshold signing for releases, and integration with a package repository.
+
+## Author
+
+Built by T as a Computer Science and Engineering project at Saveetha University (SIMATS).
